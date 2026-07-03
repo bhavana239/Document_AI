@@ -6,3 +6,7 @@ temp/
 uploads/
 *.pyc
 .env
+paddle_env/
+__pycache__/
+uploads/
+*.pyc
