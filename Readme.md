@@ -4,6 +4,11 @@
 Python 3.11
 ollamma
 ```
+## Install Qwen Model
+
+```bash
+ollama pull qwen2.5:3b
+```
 
 ## Create Virtual Environment
 
