@@ -4,6 +4,11 @@ from app.services.workflow_service import (
     approve_workflow
 )
 
+from app.schemas.workflow import (
+    StartWorkflowRequest,
+    ApproveWorkflowRequest
+)
+
 router = APIRouter(
     prefix="/api/workflow",
     tags=["Workflow"]
@@ -11,10 +16,10 @@ router = APIRouter(
 
 
 @router.post("/start")
-def start(data: dict):
+def start(data: StartWorkflowRequest):
     return start_workflow(data)
 
 
 @router.post("/approve")
-def approve(data: dict):
+def approve(data: ApproveWorkflowRequest):
     return approve_workflow(data)

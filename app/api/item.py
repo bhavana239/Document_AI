@@ -5,6 +5,10 @@ from app.services.item_service import (
     create_item
 )
 
+from app.schemas.item import (
+    CreateItemRequest 
+)
+
 router = APIRouter(
     prefix="/api/item",
     tags=["Item"]
@@ -16,5 +20,5 @@ def search(part_number: str):
     return search_item(part_number)
 
 @router.post("/create")
-def create(item: dict):
+def create(item: CreateItemRequest):
     return create_item(item)

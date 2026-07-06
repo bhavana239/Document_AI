@@ -11,6 +11,14 @@ app = FastAPI(
     title="Document AI Service"
 )
 
+@app.get("/")
+def home():
+    return {
+        "service": "Document AI Service",
+        "version": "1.0.0",
+        "status": "Running"
+    }
+    
 app.include_router(router)
 app.include_router(bom_router)
 app.include_router(item_router)

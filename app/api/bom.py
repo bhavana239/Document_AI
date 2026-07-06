@@ -4,6 +4,11 @@ from app.services.bom_service import (
     create_bom,
     approve_bom
 )
+from app.schemas.bom import (
+    CreateBomRequest,
+    ValidateBomRequest,
+    ApproveBomRequest
+)
 
 router = APIRouter(
     prefix="/api/bom",
@@ -11,15 +16,15 @@ router = APIRouter(
 )
 
 @router.post("/validate")
-def validate(bom: dict):
+def validate(bom: ValidateBomRequest):
     return validate_bom(bom)
 
 
 @router.post("/create")
-def create(bom: dict):
+def create(bom: CreateBomRequest):
     return create_bom(bom)
 
 
 @router.post("/approve")
-def approve(bom: dict):
+def approve(bom: ApproveBomRequest):
     return approve_bom(bom)

@@ -24,6 +24,8 @@ pip install uvicorn
 pip install python-multipart
 pip install pydantic
 pip install python-dotenv
+pip install pymupdf
+pip install opencv-python
 ```
 
 ## Install OCR Dependencies

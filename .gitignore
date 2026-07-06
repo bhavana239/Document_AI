@@ -1,12 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
 venv/
-__pycache__/
-logs/
-outputs/
-temp/
-uploads/
-*.pyc
-.env
 paddle_env/
-__pycache__/
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+.env
+
+# Logs
+logs/
+*.log
+
+# Uploads
 uploads/
-*.pyc
+
+# Temporary Files
+temp/
+
+# OS
+Thumbs.db
+.DS_Store

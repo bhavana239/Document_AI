@@ -1,42 +1,42 @@
-def validate_bom(bom):
+from app.schemas.bom import (
+    CreateBomRequest,
+    ValidateBomRequest,
+    ApproveBomRequest
+)
 
-    errors = []
 
-    if not bom.get("partNumber"):
-        errors.append("Part number is required")
+def validate_bom(bom: ValidateBomRequest):
 
-    if not bom.get("material"):
-        errors.append("Material is required")
-
-    if not bom.get("quantity"):
-        errors.append("Quantity is required")
-
-    if not bom.get("uom"):
-        errors.append("Unit of Measure is required")
-
-    if len(errors) == 0:
+    if not bom.bomId:
         return {
-            "status": "VALID",
-            "errors": []
+            "status": "INVALID",
+            "errors": [
+                "BOM ID is required"
+            ]
         }
 
     return {
-        "status": "INVALID",
-        "errors": errors
+        "bomId": bom.bomId,
+        "status": "VALID",
+        "errors": []
     }
-def create_bom(bom):
+
+
+def create_bom(bom: CreateBomRequest):
 
     return {
         "bomId": "BOM001",
         "status": "DRAFT",
         "message": "Draft BOM created successfully",
-        "data": bom
+        "data": bom.model_dump()
     }
-def approve_bom(bom):
+
+
+def approve_bom(bom: ApproveBomRequest):
 
     return {
-        "bomId": "BOM001",
+        "bomId": bom.bomId,
         "status": "APPROVED",
         "message": "BOM approved successfully",
-        "data": bom
+        "approvedBy": bom.approvedBy
     }

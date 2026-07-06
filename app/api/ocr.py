@@ -2,8 +2,7 @@ from fastapi import APIRouter, UploadFile, File
 import os
 import shutil
 
-from app.services.ocr_service import extract_text
-from app.services.bom_parser import parse_bom
+from app.services.processing_service import process_document_pipeline
 
 router = APIRouter(
     prefix="/api/document",
@@ -20,13 +19,4 @@ async def extract_document(file: UploadFile = File(...)):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    texts = extract_text(file_path)
-
-    parsed_bom = parse_bom(texts)
-
-    return {
-        "status": "SUCCESS",
-        "fileName": file.filename,
-        "texts": texts,
-        "parsedBom": parsed_bom
-    }
+    return process_document_pipeline(file_path)
