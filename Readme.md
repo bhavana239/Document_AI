@@ -2,6 +2,12 @@
 
 ```bash
 Python 3.11
+ollamma
+```
+## Install Qwen Model
+
+```bash
+ollama pull qwen2.5:3b
 ```
 
 ## Create Virtual Environment
@@ -33,6 +39,7 @@ pip install opencv-python
 ```bash
 pip install paddlepaddle==3.1.1
 pip install paddleocr
+pip install "paddlex[ocr]"
 ```
 
 ## Run Application
