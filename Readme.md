@@ -7,7 +7,7 @@ ollamma
 ## Install Qwen Model
 
 ```bash
-ollama pull qwen2.5:3b
+ollama pull qwen3:8b
 ```
 
 ## Create Virtual Environment
