@@ -3,65 +3,68 @@ from typing import List
 
 def validate_bom_data(bom_items: List[dict]):
     """
-    Validate extracted BOM data before sending it to ERP.
+    Dynamic validation.
 
-    Returns:
-        {
-            "status": "VALID" | "INVALID",
-            "errors": [...],
-            "warnings": [...]
-        }
+    Validates every extracted field without assuming
+    Part Number, Description, Material, Quantity, etc.
     """
 
     errors = []
     warnings = []
 
-    part_numbers = set()
+    if not bom_items:
 
-    for index, item in enumerate(bom_items, start=1):
+        return {
+            "status": "INVALID",
+            "errors": ["No BOM rows extracted."],
+            "warnings": []
+        }
 
-        part_number = item.get("partNumber")
-        description = item.get("description")
-        material = item.get("material")
-        quantity = item.get("quantity")
+    duplicate_check = {}
 
-        # Required Fields
-        if not part_number:
+    for row_number, row in enumerate(bom_items, start=1):
+
+        if not isinstance(row, dict):
+
             errors.append(
-                f"Row {index}: Part Number is required."
+                f"Row {row_number}: Invalid row format."
             )
+            continue
 
-        if not description:
-            errors.append(
-                f"Row {index}: Description is required."
-            )
+        # Validate every extracted column
+        for column_name, value in row.items():
 
-        if not material:
-            errors.append(
-                f"Row {index}: Material is required."
-            )
+            # Empty value
+            if value is None:
 
-        # Quantity Validation
-        if quantity is None:
-            errors.append(
-                f"Row {index}: Quantity is missing."
-            )
-
-        elif quantity <= 0:
-            errors.append(
-                f"Row {index}: Quantity should be greater than zero."
-            )
-
-        # Duplicate Check
-        if part_number:
-
-            if part_number in part_numbers:
                 warnings.append(
-                    f"Duplicate Part Number : {part_number}"
+                    f"Row {row_number}: '{column_name}' is NULL."
                 )
 
-            else:
-                part_numbers.add(part_number)
+                continue
+
+            if isinstance(value, str):
+
+                value = value.strip()
+
+                if value == "":
+
+                    warnings.append(
+                        f"Row {row_number}: '{column_name}' is empty."
+                    )
+
+        # Duplicate row detection
+        row_signature = tuple(sorted(row.items()))
+
+        if row_signature in duplicate_check:
+
+            warnings.append(
+                f"Duplicate row detected ({row_number})."
+            )
+
+        else:
+
+            duplicate_check[row_signature] = row_number
 
     status = "VALID"
 

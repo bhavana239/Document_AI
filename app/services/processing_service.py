@@ -3,8 +3,12 @@ import os
 from app.services.pdf_service import convert_pdf_to_images
 from app.services.image_service import preprocess_image
 from app.services.ocr_service import extract_text
-from app.services.layout_service import detect_layout
-from app.services.table_service import extract_bom_table
+
+from app.services.row_detector import detect_rows
+from app.services.column_detector import detect_columns
+from app.services.table_builder import build_table
+from app.services.header_detector import detect_header
+
 from app.services.bom_parser import parse_bom
 from app.services.validation_service import validate_bom_data
 from app.services.mapping_service import map_bom_to_erp
@@ -12,92 +16,150 @@ from app.services.mapping_service import map_bom_to_erp
 
 def process_document_pipeline(file_path: str):
     """
-    Complete Document Processing Pipeline
+    New Document AI Pipeline
 
-    Pipeline:
-        Upload
-            ↓
-        PDF Conversion
-            ↓
-        Image Preprocessing
-            ↓
-        OCR
-            ↓
-        Layout Detection
-            ↓
-        Table Extraction
-            ↓
-        BOM Parsing
+    PDF/Image
+        ↓
+    Image Preprocessing
+        ↓
+    OCR
+        ↓
+    Row Detection
+        ↓
+    Column Detection
+        ↓
+    Table Builder
+        ↓
+    Header Detection
+        ↓
+    BOM Parsing
+        ↓
+    Validation
+        ↓
+    ERP Mapping
     """
 
     extension = os.path.splitext(file_path)[1].lower()
 
-    images = []
-
-    # PDF Processing
     if extension == ".pdf":
         images = convert_pdf_to_images(file_path)
-
-    # Image Processing
     else:
-        images.append(file_path)
+        images = [file_path]
 
-    all_texts = []
+    all_words = []
 
-    all_layouts = []
+    final_headers = []
 
-    all_tables = []
+    final_rows = []
 
-    all_bom_items = []
+    final_metadata = []
 
     for image in images:
 
         print(f"Processing : {image}")
 
-        # Step 1
-        ocr_ready_image = preprocess_image(image)
+        # ----------------------------
+        # Step 1 : Image Preprocessing
+        # ----------------------------
 
-        # Step 2
-        texts = extract_text(ocr_ready_image)
+        processed_image = preprocess_image(image)
 
-        all_texts.extend(texts)
+        # ----------------------------
+        # Step 2 : OCR
+        # ----------------------------
 
-        # Step 3
-        layout = detect_layout(texts)
+        words = extract_text(processed_image)
 
-        all_layouts.append(layout)
+        all_words.extend(words)
 
-        # Step 4
-        table = extract_bom_table(layout)
+        # ----------------------------
+        # Step 3 : Detect Rows
+        # ----------------------------
 
-        all_tables.extend(table)
+        rows = detect_rows(words)
 
-    # Step 5 - Parse BOM
-    parsed_bom = parse_bom(all_tables)
+        # ----------------------------
+        # Step 4 : Detect Columns
+        # ----------------------------
 
-    all_bom_items.extend(parsed_bom["bom"])
+        column_data = detect_columns(rows)
 
-    # Step 6 - Validation
-    validation = validate_bom_data(all_bom_items)
+        # ----------------------------
+        # Step 5 : Build Table
+        # ----------------------------
+
+        table = build_table(column_data)
+
+        # ----------------------------
+        # Step 6 : Detect Header
+        # ----------------------------
+
+        table = detect_header(table)
+
+        if not final_headers:
+            final_headers = table["headers"]
+
+        final_rows.extend(table["rows"])
+
+        final_metadata.extend(table["metadata"])
+
+    # ----------------------------
+    # Step 7 : Parse BOM
+    # ----------------------------
+
+    parsed = parse_bom({
+        "headers": final_headers,
+        "rows": final_rows
+    })
+
+    bom_items = parsed["bom"]
+
+    # ----------------------------
+    # Step 8 : Validate
+    # ----------------------------
+
+    validation = validate_bom_data(bom_items)
 
     if validation["status"] == "INVALID":
+
         return {
+
             "status": "FAILED",
+
             "pages": len(images),
-            "validation": validation,
-            "parsedBom": all_bom_items
+
+            "headers": final_headers,
+
+            "rows": final_rows,
+
+            "metadata": final_metadata,
+
+            "parsedBom": bom_items,
+
+            "validation": validation
         }
 
-    # Step 7 - ERP Mapping
-    mapped_items = map_bom_to_erp(all_bom_items)
+    # ----------------------------
+    # Step 9 : ERP Mapping
+    # ----------------------------
+
+    mapped = map_bom_to_erp(bom_items)
 
     return {
+
         "status": "SUCCESS",
+
         "pages": len(images),
-        "ocrText": all_texts,
-        "layout": all_layouts,
-        "table": all_tables,
-        "parsedBom": all_bom_items,
+
+        "headers": final_headers,
+
+        "rows": final_rows,
+
+        "metadata": final_metadata,
+
+        "parsedBom": bom_items,
+
         "validation": validation,
-        "erpMapping": mapped_items
+
+        "erpMapping": mapped
     }

@@ -1,39 +1,68 @@
-def parse_bom(texts):
+def parse_bom(table):
+    """
+    Generic BOM Parser
 
-    # Remove table headers
-    headers = [
-        "Part No.",
-        "Name",
-        "Material",
-        "Qty"
-    ]
+    Input:
+    {
+        "headers": [...],
+        "rows": [...]
+    }
 
-    filtered = []
+    Output:
+    {
+        "headers": [...],
+        "bom": [...]
+    }
+    """
 
-    for text in texts:
-        if text not in headers:
-            filtered.append(text)
+    headers = table.get("headers", [])
+    rows = table.get("rows", [])
 
     bom = []
 
-    # Every BOM row contains:
-    # Part Number, Description, Material, Quantity
-    for i in range(0, len(filtered), 4):
+    # Header exists
+    if headers:
 
-        if i + 3 < len(filtered):
+        for row in rows:
 
-            try:
-                quantity = int(filtered[i + 3])
-            except:
-                quantity = 0
+            item = {}
 
-            bom.append({
-                "partNumber": filtered[i],
-                "description": filtered[i + 1],
-                "material": filtered[i + 2],
-                "quantity": quantity
-            })
+            for index, value in enumerate(row):
+
+                if index < len(headers):
+                    header = headers[index].strip()
+
+                    if header == "":
+                        header = f"Column_{index + 1}"
+
+                else:
+                    header = f"Column_{index + 1}"
+
+                # Prevent duplicate headers
+                header_name = header
+                counter = 1
+
+                while header_name in item:
+                    counter += 1
+                    header_name = f"{header}_{counter}"
+
+                item[header_name] = value
+
+            bom.append(item)
+
+    # No headers
+    else:
+
+        for row in rows:
+
+            item = {}
+
+            for index, value in enumerate(row):
+                item[f"Column_{index + 1}"] = value
+
+            bom.append(item)
 
     return {
+        "headers": headers,
         "bom": bom
     }

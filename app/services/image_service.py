@@ -1,57 +1,70 @@
-import os
 import cv2
-import numpy as np
+import os
 
 
-def preprocess_image(image_path: str) -> str:
-    """
-    Preprocess image before OCR.
+def preprocess_image(image_path: str):
 
-    Steps:
-    1. Read Image
-    2. Convert to Grayscale
-    3. Remove Noise
-    4. Improve Contrast
-    5. Thresholding
-    6. Save Processed Image
-
-    Returns:
-        Processed image path
-    """
-
+    # Read image
     image = cv2.imread(image_path)
 
     if image is None:
         raise Exception(f"Unable to read image : {image_path}")
 
-    # Convert to Gray
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # -------------------------------
+    # Step 1 : Resize
+    # -------------------------------
+    height, width = image.shape[:2]
 
-    # Remove Noise
-    denoise = cv2.fastNlMeansDenoising(gray)
+    if width < 1800:
+        scale = 1800 / width
 
-    # Improve Contrast
-    contrast = cv2.equalizeHist(denoise)
+        image = cv2.resize(
+            image,
+            None,
+            fx=scale,
+            fy=scale,
+            interpolation=cv2.INTER_CUBIC
+        )
 
-    # Binary Threshold
-    processed = cv2.adaptiveThreshold(
-        contrast,
+    # -------------------------------
+    # Step 2 : Gray Scale
+    # -------------------------------
+    gray = cv2.cvtColor(
+        image,
+        cv2.COLOR_BGR2GRAY
+    )
+
+    # -------------------------------
+    # Step 3 : Noise Removal
+    # -------------------------------
+    gray = cv2.GaussianBlur(
+        gray,
+        (3, 3),
+        0
+    )
+
+    # -------------------------------
+    # Step 4 : Adaptive Threshold
+    # -------------------------------
+    binary = cv2.adaptiveThreshold(
+        gray,
         255,
         cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
         cv2.THRESH_BINARY,
         31,
-        10
+        15
     )
 
-    output_folder = "temp/processed_images"
-
-    os.makedirs(output_folder, exist_ok=True)
+    # -------------------------------
+    # Step 5 : Save processed image
+    # -------------------------------
+    os.makedirs("temp", exist_ok=True)
 
     output_path = os.path.join(
-        output_folder,
+        "temp",
         os.path.basename(image_path)
     )
 
-    cv2.imwrite(output_path, processed)
+    cv2.imwrite(output_path, binary)
 
     return output_path
