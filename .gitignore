@@ -4,8 +4,10 @@ __pycache__/
 *.pyo
 *.pyd
 
+
 # Virtual Environment
 venv/
+venv311/
 paddle_env/
 
 # IDE

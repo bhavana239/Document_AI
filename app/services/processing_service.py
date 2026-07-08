@@ -9,7 +9,7 @@ from app.services.column_detector import detect_columns
 from app.services.table_builder import build_table
 from app.services.header_detector import detect_header
 
-from app.services.bom_parser import parse_bom
+from app.services.qwen_service import parse_bom_with_qwen
 from app.services.validation_service import validate_bom_data
 from app.services.mapping_service import map_bom_to_erp
 
@@ -104,13 +104,13 @@ def process_document_pipeline(file_path: str):
         final_metadata.extend(table["metadata"])
 
     # ----------------------------
-    # Step 7 : Parse BOM
-    # ----------------------------
+# Step 7 : Parse BOM using Qwen
+# ----------------------------
 
-    parsed = parse_bom({
-        "headers": final_headers,
-        "rows": final_rows
-    })
+    parsed = parse_bom_with_qwen(
+    final_headers,
+    final_rows
+)
 
     bom_items = parsed["bom"]
 
