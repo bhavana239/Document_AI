@@ -1,7 +1,7 @@
 # Prerequisites
 
 ```bash
-Python 3.11
+Python 3.12.10
 ollamma
 ```
 ## Install Qwen Model
